@@ -1,4 +1,5 @@
 pub mod modules;
+pub mod db;
 
 use salvo::prelude::*;
 use salvo::cors::Cors;
@@ -13,11 +14,12 @@ async fn index(res: &mut Response) {
 #[tokio::main]
 async fn main() {
   tracing_subscriber::fmt().init();
-
+  
+  // CONFIG CORS
   let cors = Cors::new()
-    .allow_origin("*")
-    .allow_methods(vec![Method::GET, Method::POST, Method::DELETE, Method::PUT])
-    .into_handler();
+  .allow_origin("*")
+  .allow_methods(vec![Method::GET, Method::POST, Method::DELETE, Method::PUT])
+  .into_handler();
 
   let mut app_routing = router();
   let router = Router::new().path("/api/v1").get(index).append(&mut app_routing);
