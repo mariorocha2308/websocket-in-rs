@@ -1,8 +1,8 @@
 -- Your SQL goes here
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
+  id TEXT PRIMARY KEY,
   username TEXT NOT NULL,
-  firstname TEXT NOT NULL,
-  email TEXT NOT NULL,
-  ip TEXT NOT NULL
+  phone TEXT NOT NULL,
+  password TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 )

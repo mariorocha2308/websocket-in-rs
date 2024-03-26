@@ -1,23 +1,23 @@
 use diesel::prelude::*;
-use serde::{Deserialize, Serialize};
+use diesel::sql_types::Timestamp;
 use crate::db::schema::users;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Queryable, Selectable)]
+#[derive(Deserialize, Queryable, Selectable)]
 #[diesel(table_name = users)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
-  pub id: i32,
+  pub id: String,
   pub username: String,
-  pub firstname: String,
-  pub email: String,
-  pub ip: String
+  pub phone: String,
+  pub password: String,
+  pub created_at: Timestamp
 }
 
-#[derive(Insertable)]
+#[derive(Serialize, Insertable)]
 #[diesel(table_name = users)]
 pub struct IUser {
   pub username: String,
-  pub firstname: String,
-  pub email: String,
-  pub ip: String
+  pub phone: String,
+  pub password: String,
 }

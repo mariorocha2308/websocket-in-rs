@@ -1,18 +1,11 @@
 pub mod modules;
 pub mod db;
 
-use db::models::user::User;
 use salvo::prelude::*;
 use salvo::cors::Cors;
 use salvo::http::Method;
 use modules::route::router;
-
-// ----------------------------------------------
-use diesel::prelude::*;
-use db::index::establish_connection;
-use db::ops::user::create_user;
-use crate::db::schema::users::dsl::users;
-// ----------------------------------------------
+use salvo::logging::Logger;
 
 #[handler]
 async fn index(res: &mut Response) {
@@ -31,20 +24,8 @@ async fn main() {
 
   let mut app_routing = router();
   let router = Router::new().path("/api/v1").get(index).append(&mut app_routing);
-  let service = Service::new(router).hoop(cors);
+  let service = Service::new(router).hoop(cors).hoop(Logger::new());
   let acceptor = TcpListener::new("127.0.0.1:5800").bind().await;
-
-  // PRELOAD COLLECTION OF USERS WHEN RUN SERVER
-  let connection = &mut establish_connection();
-
-  let users_collection: Vec<User> = users
-    .select(User::as_select())
-    .load(connection)
-    .unwrap();
-
-  if users_collection.len() == 0 {
-    create_user();
-  }
 
   // RUNNING SERVER
   Server::new(acceptor).serve(service).await;
