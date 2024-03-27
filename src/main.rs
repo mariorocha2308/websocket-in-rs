@@ -6,6 +6,13 @@ use salvo::cors::Cors;
 use salvo::http::Method;
 use modules::route::router;
 use salvo::logging::Logger;
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct ServerResponse {
+  message: String,
+  status_code: i32
+}
 
 #[handler]
 async fn index(res: &mut Response) {
