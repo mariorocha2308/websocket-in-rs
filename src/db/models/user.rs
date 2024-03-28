@@ -19,6 +19,6 @@ pub struct QblUser {
 #[diesel(table_name = users)]
 pub struct IblUser {
   pub nickname: String,
-  pub telephone: String,
+  pub telephone: Option<String>,
   pub keypass: String,
 }

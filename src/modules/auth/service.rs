@@ -1,15 +1,9 @@
 use salvo::prelude::*;
-use bcrypt::{hash, verify, DEFAULT_COST};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use uuid::Uuid;
-use crate::{db::{models::user::IblUser, ops::user::{create_user, get_user_by_nickname}}, ServerResponse};
 
-// TODO: CREATE OPTIONAL FIELD TELEPHONE IN STRUCT "IblUser"
-#[derive(Deserialize)]
-struct UserLogin {
-  nickname: String,
-  keypass: String
-}
+use bcrypt::{hash, verify, DEFAULT_COST};
+use crate::{db::{models::user::IblUser, ops::user::{create_user, get_user_by_nickname}}, ServerResponse};
 
 #[derive(Serialize)]
 struct Session {
@@ -19,7 +13,7 @@ struct Session {
 
 #[handler]
 pub async fn post_login(res: &mut Response, req: &mut Request) {
-  let body = req.parse_body::<UserLogin>().await;
+  let body = req.parse_body::<IblUser>().await;
 
   match body {
     Ok(login) => {
@@ -72,7 +66,7 @@ pub async fn post_register(res: &mut Response, req: &mut Request) {
 
       let new_user = IblUser { 
         nickname: user.nickname.to_string(), 
-        telephone: user.telephone.to_string(), 
+        telephone: Some(user.telephone.unwrap()), 
         keypass: hashed_pass.to_string()
       };
 
