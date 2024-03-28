@@ -1,13 +1,56 @@
 use salvo::prelude::*;
-use bcrypt::{DEFAULT_COST, hash};
-use crate::{db::{models::user::IblUser, ops::user::create_user}, ServerResponse};
+use bcrypt::{hash, verify, DEFAULT_COST};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use crate::{db::{models::user::IblUser, ops::user::{create_user, get_user_by_nickname}}, ServerResponse};
+
+// TODO: CREATE OPTIONAL FIELD TELEPHONE IN STRUCT "IblUser"
+#[derive(Deserialize)]
+struct UserLogin {
+  nickname: String,
+  keypass: String
+}
+
+#[derive(Serialize)]
+struct Session {
+  _id: Uuid,
+  nickname: String
+}
 
 #[handler]
 pub async fn post_login(res: &mut Response, req: &mut Request) {
-  let body = req.parse_body::<IblUser>().await;
+  let body = req.parse_body::<UserLogin>().await;
 
   match body {
-    Ok(_) => {
+    Ok(login) => {
+      let handle_user = get_user_by_nickname(login.nickname);
+
+      match handle_user {
+        Ok(user) => {
+          let verify_pass = verify(login.keypass, &user.keypass);
+          
+          match verify_pass {
+            Ok(_) => {
+              res.status_code(StatusCode::ACCEPTED).render(Json(Session{
+                _id: user._id,
+                nickname: user.nickname
+              }));
+            }
+            Err(_) => {
+              res.status_code(StatusCode::UNAUTHORIZED).render(Json(ServerResponse{
+                message: "Error: Invalid Credentials".to_string(),
+                status_code: 401
+              }));
+            }
+          }
+        }
+        Err(_) => {
+          res.status_code(StatusCode::NOT_FOUND).render(Json(ServerResponse{
+            message: "Error: Trying to find item in database".to_string(),
+            status_code: 404
+          }));
+        }
+      }
     }
 
     Err(err) => {
@@ -38,13 +81,13 @@ pub async fn post_register(res: &mut Response, req: &mut Request) {
       match handle_create {
         Ok(_) => {
           res.status_code(StatusCode::CREATED).render(Json(ServerResponse{
-            message: "User register successfully".to_string(),
+            message: "Success: User register successfully".to_string(),
             status_code: 201
           }));
         }
         Err(_) => {
           res.status_code(StatusCode::BAD_GATEWAY).render(Json(ServerResponse{
-            message: "Error set data in database".to_string(),
+            message: "Error: Set data in database".to_string(),
             status_code: 502
           }));
         }
