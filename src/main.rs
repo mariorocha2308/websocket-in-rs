@@ -8,15 +8,16 @@ use modules::route::router;
 use salvo::logging::Logger;
 use serde::Serialize;
 
+// TODO: TRY SERIALIZE OPTIONAL STRUCT GENERIC WITH FIELD data: Option<T>
 #[derive(Serialize)]
 pub struct ServerResponse {
   message: String,
-  status_code: i32
+  status_code: i32,
 }
 
 #[handler]
 async fn index(res: &mut Response) {
-  res.render("Welcome to Salvo application!")
+  res.status_code(StatusCode::OK).render("Welcome to Salvo application!")
 }
 
 #[tokio::main]
