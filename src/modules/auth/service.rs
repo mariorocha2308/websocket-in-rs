@@ -1,15 +1,8 @@
 use salvo::prelude::*;
-use serde::Serialize;
-use uuid::Uuid;
+use serde_json::json;
 
 use bcrypt::{hash, verify, DEFAULT_COST};
 use crate::{db::{models::user::IblUser, ops::user::{create_user, get_user_by_nickname}}, ServerResponse};
-
-#[derive(Serialize)]
-struct Session {
-  _id: Uuid,
-  nickname: String
-}
 
 #[handler]
 pub async fn post_login(res: &mut Response, req: &mut Request) {
@@ -22,18 +15,23 @@ pub async fn post_login(res: &mut Response, req: &mut Request) {
       match handle_user {
         Ok(user) => {
           let verify_pass = verify(login.keypass, &user.keypass);
-          
+
           match verify_pass {
             Ok(_) => {
-              res.status_code(StatusCode::ACCEPTED).render(Json(Session{
-                _id: user._id,
-                nickname: user.nickname
+              res.status_code(StatusCode::ACCEPTED).render(Json(ServerResponse{
+                message: "Success: Valid authorization".to_string(),
+                status_code: 202, 
+                data: Some(serde_json::from_value(json!({
+                  "_id": user._id,
+                  "nickname": user.nickname
+                })).unwrap())
               }));
             }
             Err(_) => {
               res.status_code(StatusCode::UNAUTHORIZED).render(Json(ServerResponse{
-                message: "Error: Invalid Credentials".to_string(),
-                status_code: 401
+                message: "Error: Invalid credentials".to_string(),
+                status_code: 401, 
+                data: None
               }));
             }
           }
@@ -41,7 +39,8 @@ pub async fn post_login(res: &mut Response, req: &mut Request) {
         Err(_) => {
           res.status_code(StatusCode::NOT_FOUND).render(Json(ServerResponse{
             message: "Error: Trying to find item in database".to_string(),
-            status_code: 404
+            status_code: 404,
+            data: None
           }));
         }
       }
@@ -50,7 +49,8 @@ pub async fn post_login(res: &mut Response, req: &mut Request) {
     Err(err) => {
       res.status_code(StatusCode::EXPECTATION_FAILED).render(Json(ServerResponse{
         message: err.to_string(),
-        status_code: 417
+        status_code: 417,
+        data: None
       }));
     }
   }
@@ -73,16 +73,21 @@ pub async fn post_register(res: &mut Response, req: &mut Request) {
       let handle_create = create_user(new_user);
 
       match handle_create {
-        Ok(_) => {
+        Ok(user) => {
+
           res.status_code(StatusCode::CREATED).render(Json(ServerResponse{
             message: "Success: User register successfully".to_string(),
-            status_code: 201
+            status_code: 201,
+            data: Some(serde_json::from_value(json!({
+              "_id": user._id
+            })).unwrap())
           }));
         }
         Err(_) => {
           res.status_code(StatusCode::BAD_GATEWAY).render(Json(ServerResponse{
             message: "Error: Set data in database".to_string(),
-            status_code: 502
+            status_code: 502,
+            data: None
           }));
         }
       }
@@ -91,7 +96,8 @@ pub async fn post_register(res: &mut Response, req: &mut Request) {
     Err(err) => {
       res.status_code(StatusCode::EXPECTATION_FAILED).render(Json(ServerResponse{
         message: err.to_string(),
-        status_code: 417
+        status_code: 417,
+        data: None
       }));
     }
   }

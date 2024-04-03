@@ -5,14 +5,16 @@ use salvo::prelude::*;
 use salvo::cors::Cors;
 use salvo::http::Method;
 use modules::route::router;
+use std::collections::HashMap;
 use salvo::logging::Logger;
 use serde::Serialize;
+use serde_json;
 
-// TODO: TRY SERIALIZE OPTIONAL STRUCT GENERIC WITH FIELD data: Option<T>
 #[derive(Serialize)]
 pub struct ServerResponse {
   message: String,
   status_code: i32,
+  data: Option<HashMap<String, serde_json::Value>>
 }
 
 #[handler]
