@@ -7,9 +7,12 @@ publish = false
 [dependencies]
 diesel = { version = "2.1.4", features = ["postgres", "r2d2", "uuid", "chrono"] }
 salvo = { version = '*', features = ["cors", "websocket", "logging"]}
+futures-util = { version = "0.3", default-features = false }
+tokio-stream = { version = "0.1", features = ["net"] }
 uuid = { version = "1.8.0", features = ["v4", "serde"]}
 chrono = { version = "0.4.35", features = ["serde"]}
 tokio = { version = "1", features = ["macros"] }
+once_cell = "1"
 dotenv = "0.15.0"
 serde = "1.0.197"
 tracing = "0.1"
