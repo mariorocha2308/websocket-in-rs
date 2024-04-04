@@ -1,35 +1,24 @@
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use futures_util::{FutureExt, StreamExt};
-use once_cell::sync::Lazy;
-use tokio::sync::{mpsc, RwLock};
+use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
-use salvo::websocket::{Message, WebSocket};
+use salvo::websocket::WebSocket;
+use short_uuid::short;
 
+use crate::modules::websocket::disconnect::on_disconnect;
+use super::index::UserConnection;
 
-type Users = RwLock<HashMap<usize, mpsc::UnboundedSender<Result<Message, salvo::Error>>>>;
+// type Users = RwLock<HashMap<usize, mpsc::UnboundedSender<Result<Message, salvo::Error>>>>;
 
-static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
-static ONLINE_USERS: Lazy<Users> = Lazy::new(Users::default);
+// static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
+// static ONLINE_USERS: Lazy<Users> = Lazy::new(Users::default);
 
+pub async fn on_connect (ws: WebSocket, _user: UserConnection) {
 
-
-
-use crate::modules::websocket::disconnect::index_disconnect;
-
-pub async fn index_connect(ws: WebSocket) {
-    // Use a counter to assign a new unique ID for this user.
-  let my_id = NEXT_USER_ID.fetch_add(1, Ordering::Relaxed);
-
-  tracing::info!("new chat user: {}", my_id);
-
-    // Split the socket into a sender and receive of messages.
+  let conn_id = short!();
   let (user_ws_tx, mut user_ws_rx) = ws.split();
-
-    // Use an unbounded channel to handle buffering and flushing of messages
-    // to the websocket...
-  let (tx, rx) = mpsc::unbounded_channel();
+  let (_tx, rx) = mpsc::unbounded_channel();
   let rx = UnboundedReceiverStream::new(rx);
+
   let fut = rx.forward(user_ws_tx).map(|result| {
     if let Err(e) = result {
       tracing::error!(error = ?e, "websocket send error");
@@ -39,21 +28,22 @@ pub async fn index_connect(ws: WebSocket) {
   tokio::task::spawn(fut);
 
   let fut = async move {
-    ONLINE_USERS.write().await.insert(my_id, tx);
+    // ONLINE_USERS.write().await.insert(conn_id, tx);
     while let Some(result) = user_ws_rx.next().await {
-      let msg = match result {
+      let _msg = match result {
         Ok(msg) => msg,
         Err(e) => {
-          eprintln!("websocket error(uid={}): {}", my_id, e);
+          println!("websocket error(uid={conn_id}): {e}");
           break;
         }
       };
-      // user_message(my_id, msg).await;
+      // user_message(conn_id, msg).await;
     }
-    index_disconnect(my_id).await;
+    on_disconnect(conn_id).await;
   };
 
   tokio::task::spawn(fut);
+
 }
 
 // async fn user_message(my_id: usize, msg: Message) {
