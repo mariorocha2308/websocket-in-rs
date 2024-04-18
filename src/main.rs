@@ -2,7 +2,7 @@ pub mod modules;
 pub mod db;
 
 use salvo::prelude::*;
-use salvo::cors::Cors;
+use salvo::cors::{Cors, Any};
 use salvo::http::Method;
 use modules::route::router;
 use std::collections::HashMap;
@@ -28,9 +28,10 @@ async fn main() {
   
   // CONFIG CORS
   let cors = Cors::new()
-  .allow_origin("*")
-  .allow_methods(vec![Method::GET, Method::POST, Method::DELETE, Method::PUT])
-  .into_handler();
+    .allow_origin(Any)
+    .allow_headers(Any)
+    .allow_methods(vec![Method::GET, Method::POST, Method::DELETE, Method::PUT])
+    .into_handler();
 
   let mut app_routing = router();
   let router = Router::new().path("/api/v1").get(index).append(&mut app_routing);

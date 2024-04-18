@@ -17,19 +17,27 @@ pub async fn post_login(res: &mut Response, req: &mut Request) {
           let verify_pass = verify(login.keypass, &user.keypass);
 
           match verify_pass {
-            Ok(_) => {
-              res.status_code(StatusCode::ACCEPTED).render(Json(ServerResponse{
-                message: "Success: Valid authorization".to_string(),
-                status_code: 202, 
-                data: Some(serde_json::from_value(json!({
-                  "_id": user._id,
-                  "nickname": user.nickname
-                })).unwrap())
-              }));
+            Ok(res_verify) => {
+              if res_verify {
+                res.status_code(StatusCode::ACCEPTED).render(Json(ServerResponse{
+                  message: "Success: Valid authorization".to_string(),
+                  status_code: 202, 
+                  data: Some(serde_json::from_value(json!({
+                    "_id": user._id,
+                    "nickname": user.nickname
+                  })).unwrap())
+                }));
+              } else {
+                res.status_code(StatusCode::UNAUTHORIZED).render(Json(ServerResponse{
+                  message: "Error: Invalid password".to_string(),
+                  status_code: 401, 
+                  data: None
+                }));
+              }
             }
             Err(_) => {
               res.status_code(StatusCode::UNAUTHORIZED).render(Json(ServerResponse{
-                message: "Error: Invalid credentials".to_string(),
+                message: "Error: Bcrypt does not work".to_string(),
                 status_code: 401, 
                 data: None
               }));
