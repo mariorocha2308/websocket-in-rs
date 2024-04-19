@@ -20,3 +20,11 @@ pub fn get_user_by_nickname(name: String) -> Result<QblUser, Error> {
   .select(QblUser::as_select())
   .first(conn)
 }
+
+pub fn get_all_users() -> Result<Vec<QblUser>, Error> {
+  let conn = &mut establish_connection();
+
+  return users::table
+    .select(QblUser::as_select())
+    .load::<QblUser>(conn)
+}

@@ -46,7 +46,7 @@ pub async fn post_login(res: &mut Response, req: &mut Request) {
         }
         Err(_) => {
           res.status_code(StatusCode::NOT_FOUND).render(Json(ServerResponse{
-            message: "Error: Trying to find item in database".to_string(),
+            message: "Error: User does not exist".to_string(),
             status_code: 404,
             data: None
           }));
