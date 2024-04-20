@@ -21,6 +21,7 @@ pub fn get_user_by_nickname(name: String) -> Result<QblUser, Error> {
   .first(conn)
 }
 
+//* THIS REQUEST DB HAVE A CONFLICT SECURITY: RETURN ALL FIELDS OF USER TABLE LIKE: KEYPASS
 pub fn get_all_users() -> Result<Vec<QblUser>, Error> {
   let conn = &mut establish_connection();
 

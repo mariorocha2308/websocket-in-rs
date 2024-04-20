@@ -1,17 +1,8 @@
+use salvo::prelude::*;
+use serde_json::json;
 use std::collections::HashMap;
 
-use salvo::prelude::*;
-use serde::Serialize;
-use serde_json::json;
 use crate::{db::ops::user::get_all_users, ServerResponse};
-
-#[derive(Serialize)]
-struct UserCollection {
-  _id: String,
-  nickname: String,
-  telephone: String,
-  keypass: String
-}
 
 #[handler]
 pub async fn get_collection(res: &mut Response) {
